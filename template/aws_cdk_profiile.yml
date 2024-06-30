@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+  iamUser:
+    Type: AWS::IAM::User
+    Properties:
+      Path: /
+      UserName: awscdk
+      ManagedPolicyArns:
+        - AdministratorAccess
+
+  iamAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref iamUser
+
+Outputs:
+  iamAccessKey:
+    Value: !Ref iamAccessKey
+    Export:
+      Name: IamAccessKey
+
+  iamSecretAccessKey:
+    Value: !GetAtt iamAccessKey.SecretAccessKey
+    Export:
+      Name: SecretAccessKey
