@@ -7,7 +7,7 @@ Resources:
       Path: /
       UserName: awscdk
       ManagedPolicyArns:
-        - AdministratorAccess
+        - arn:aws:iam::aws:policy/AdministratorAccess
 
   iamAccessKey:
     Type: AWS::IAM::AccessKey
