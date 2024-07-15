@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Cloud9 environment"
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: "Environment name"
+    Default: "cloud9"
+  
+  VPCCidr:
+    Type: String
+    Description: "VPC CIDR"
+    Default: "10.0.0.0/16"
+  
+  SubnetCidr1:
+    Type: String
+    Description: "Subnet CIDR 1"
+    Default: "10.0.1.0/24"
+
+Resources:
+  #VPC
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: !Ref VPCCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+  
+  #Internet Gateway
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+  
+  #Attach Internet Gateway to your main VPC
+  AttachGateway:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  
+  #Route Table
+  RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+  
+  #Route to IGW
+  Route:
+    Type: "AWS::EC2::Route"
+    DependsOn: "AttachGateway"
+    Properties:
+      RouteTableId: !Ref RouteTable
+      GatewayId: !Ref InternetGateway
+      DestinationCidrBlock: "0.0.0.0/0"
+  
+  #Associate Route Table with Subnet
+  SubnetRouteTableAssociation:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref Subnet
+      RouteTableId: !Ref RouteTable
+  
+  #Subnet
+  Subnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref SubnetCidr1
+      AvailabilityZone: "ap-northeast-1a"
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+    
+  #Security Group
+  SecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Allow all traffic"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: "-1"
+          CidrIp: "0.0.0.0/0"
+  
+  #Cloud9
+  Cloud9Environment:
+    Type: "AWS::Cloud9::EnvironmentEC2"
+    Properties:
+      Name: !Ref EnvironmentName
+      Description: "Cloud9 environment"
+      InstanceType: "t3.small"
+      SubnetId: !Ref Subnet
+      AutomaticStopTimeMinutes: 60
+      ConnectionType: "CONNECT_SSH"
+      ImageId: "amazonlinux-2-x86_64"
