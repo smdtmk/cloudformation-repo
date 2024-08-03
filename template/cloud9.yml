@@ -100,4 +100,4 @@ Resources:
       SubnetId: !Ref Subnet
       AutomaticStopTimeMinutes: 60
       ConnectionType: "CONNECT_SSH"
-      ImageId: "amazonlinux-2-x86_64"
+      ImageId: "amazonlinux-2023-x86_64"
